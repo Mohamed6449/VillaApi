@@ -18,6 +18,7 @@ namespace MagicVilla_VillaApi.Data
             base.OnModelCreating(modelBuilder);
 
         }
+        public DbSet<VillaNumber> VillaNumbers { get; set; }
         public DbSet<Villa> Villas { get; set; }
 
     }

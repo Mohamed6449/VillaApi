@@ -69,6 +69,31 @@ namespace MagicVilla_VillaApi.Migrations
                     b.ToTable("Villas");
                 });
 
+            modelBuilder.Entity("MagicVilla_VillaApi.Models.VillaNumber", b =>
+                {
+                    b.Property<int>("VillaNumberId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SpitialDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("VillaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VillaNumberId");
+
+                    b.HasIndex("VillaId");
+
+                    b.ToTable("VillaNumbers");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -267,6 +292,17 @@ namespace MagicVilla_VillaApi.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MagicVilla_VillaApi.Models.VillaNumber", b =>
+                {
+                    b.HasOne("MagicVilla_VillaApi.Models.Villa", "villa")
+                        .WithMany("VillaNumbers")
+                        .HasForeignKey("VillaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("villa");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -316,6 +352,11 @@ namespace MagicVilla_VillaApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MagicVilla_VillaApi.Models.Villa", b =>
+                {
+                    b.Navigation("VillaNumbers");
                 });
 #pragma warning restore 612, 618
         }

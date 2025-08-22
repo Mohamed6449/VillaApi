@@ -1,15 +1,139 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using CQRS_test.CustomActionFilter;
+using MagicVilla_VillaApi.Dto.ApiResponses;
+using MagicVilla_VillaApi.Dto.VillaDto;
+using MagicVilla_VillaApi.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace MagicVilla_VillaApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ValidationModel]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public class VillaApiController : ControllerBase
     {
-        public VillaApiController()
+        private readonly ApiResponse _ApiResponse;
+        private readonly IMapper _mapper;
+        private readonly IVillaService _villaService;
+        
+        public VillaApiController(IVillaService villaService, IMapper mapper)
+        {
+            _mapper = mapper;
+            _villaService = villaService;
+            _ApiResponse = new();
+        }
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task <ActionResult<ApiResponse>> GetVillas()
+        {
+            _ApiResponse.statusCode = HttpStatusCode.OK;
+            _ApiResponse.result = await _villaService.GetVillasAsync();
+            return Ok(_ApiResponse);
+        }
+
+
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse>> GetVilla(int id)
+        {
+            var villa = await _villaService.GetVillaAsyncById(id);
+            if (villa == null)
+            {
+               _ApiResponse.statusCode = HttpStatusCode.NotFound;
+                _ApiResponse.Success = false;
+                return Ok(_ApiResponse);
+            }
+            _ApiResponse.statusCode = HttpStatusCode.OK;
+            _ApiResponse.result = villa;
+            return Ok(_ApiResponse);
+        }
+
+
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse>> CreateVilla([FromBody]DtoVillaCreate model)
         {
 
+             await  _villaService.CreateVilla( model);
+            _ApiResponse.statusCode = HttpStatusCode.Created;
+            _ApiResponse.result = model;
+            return Ok(_ApiResponse);
+        }
+
+
+
+
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse>> UpdateVilla(int id,[FromBody]DtoVillaUpdate model)
+        {
+          var result= await  _villaService.UpdateVilla(id, model);
+            if (!result)
+            {
+                _ApiResponse.statusCode = HttpStatusCode.NotFound;
+                _ApiResponse.Success = false;
+                return Ok(_ApiResponse);
+           
+            }
+            _ApiResponse.statusCode = HttpStatusCode.NoContent;
+            _ApiResponse.result = model;
+          
+            return Ok(_ApiResponse);
+        }
+
+
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> DeleteVilla(int id)
+        {
+            var result = await _villaService.DeleteVilla(id);
+            if (!result)
+            {
+                _ApiResponse.statusCode = HttpStatusCode.NotFound;
+                _ApiResponse.Success = false;
+                return Ok(_ApiResponse);
+            }
+            _ApiResponse.statusCode = HttpStatusCode.NoContent;
+            return Ok(_ApiResponse);
+            
+        }
+
+
+
+        [HttpPatch("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> PatchVilla(int id, [FromBody]JsonPatchDocument<DtoVillaUpdate> patchDoc)
+        {
+            if (patchDoc == null)
+            {
+                return BadRequest();
+            }
+            var DtoGet=await _villaService.GetVillaAsyncById(id);
+            var dtoUpdate= _mapper.Map<DtoVillaUpdate>(DtoGet);
+            patchDoc.ApplyTo(dtoUpdate);
+
+           var result= await _villaService.UpdateVilla(id, dtoUpdate);
+
+            if (!result)
+            {
+                return NotFound();
+            }
+            return NoContent();
         }
     }
 }

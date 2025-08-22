@@ -12,5 +12,7 @@
         public DateTime UpdatedDate { get; set; } = DateTime.Now;
         public string Amenity { get; set; } = string.Empty;
         public int Sqft { get; set; }
+
+        public virtual ICollection< VillaNumber> VillaNumbers { get; set; }
     }
 }
