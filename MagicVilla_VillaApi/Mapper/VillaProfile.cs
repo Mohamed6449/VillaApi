@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using CQRS_test.ViewModels.Identity;
+using MagicVilla_VillaApi.Dto.Identity;
 using MagicVilla_VillaApi.Dto.VillaDto;
 using MagicVilla_VillaApi.Dto.VillaNumberDto;
+using MagicVilla_VillaApi.Models;
 
 namespace MagicVilla_VillaApi.Mapper
 {
@@ -8,13 +11,15 @@ namespace MagicVilla_VillaApi.Mapper
     {
         public VillaProfile()
         {
-            CreateMap<DtoVillaGet, Models.Villa>().ReverseMap();
-            CreateMap<DtoVillaCreate, Models.Villa>().ReverseMap();
-            CreateMap<DtoVillaUpdate, Models.Villa>().ReverseMap();
+            CreateMap<DtoVillaGet, Villa>().ReverseMap();
+            CreateMap<DtoVillaCreate, Villa>().ReverseMap();
+            CreateMap<DtoVillaUpdate, Villa>().ReverseMap();
             CreateMap<DtoVillaGet,DtoVillaUpdate>();
-            CreateMap< Models.VillaNumber, DtoVillaNumberGet>().ForMember(dest=> dest.dtoVillaGet,opt=>opt.MapFrom(src=>src.villa));
-            CreateMap<DtoVillaNumberCreate, Models.VillaNumber>().ReverseMap();
-            CreateMap<DtoVillaNumberUpdate, Models.VillaNumber>().ReverseMap();
+            CreateMap<VillaNumber, DtoVillaNumberGet>().ForMember(dest=> dest.dtoVillaGet,opt=>opt.MapFrom(src=>src.villa));
+            CreateMap<DtoVillaNumberCreate,VillaNumber>().ReverseMap();
+            CreateMap<DtoVillaNumberUpdate,VillaNumber>().ReverseMap();
+            CreateMap<RegisterViewModel, User>();
+            CreateMap<User, DtoUser>();
 
         }
     }
