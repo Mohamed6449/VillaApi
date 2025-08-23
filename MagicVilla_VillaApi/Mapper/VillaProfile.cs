@@ -12,7 +12,7 @@ namespace MagicVilla_VillaApi.Mapper
             CreateMap<DtoVillaCreate, Models.Villa>().ReverseMap();
             CreateMap<DtoVillaUpdate, Models.Villa>().ReverseMap();
             CreateMap<DtoVillaGet,DtoVillaUpdate>();
-            CreateMap<DtoVillaNumberGet, Models.VillaNumber>().ReverseMap();
+            CreateMap< Models.VillaNumber, DtoVillaNumberGet>().ForMember(dest=> dest.dtoVillaGet,opt=>opt.MapFrom(src=>src.villa));
             CreateMap<DtoVillaNumberCreate, Models.VillaNumber>().ReverseMap();
             CreateMap<DtoVillaNumberUpdate, Models.VillaNumber>().ReverseMap();
 

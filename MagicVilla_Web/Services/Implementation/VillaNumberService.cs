@@ -1,21 +1,22 @@
 ﻿using ClassLibrary1;
 using MagicVilla_Web.Dto;
 using MagicVilla_Web.Dto.VillaDto;
+using MagicVilla_Web.Dto.VillaNumberDto;
 using MagicVilla_Web.Services.@interface;
 using MagicVilla_Web.Services.interfaces;
 
 namespace MagicVilla_Web.Services.Implementation
 {
-    public class VillaService :BaseService, IVillaService
+    public class VillaNumberService : BaseService, IVillaNumberService
     {
         private readonly ApiRequest _apiRequest;
         private readonly string Url;
-        public VillaService(IHttpClientFactory httpClient, IConfiguration configuration) : base(httpClient)
+        public VillaNumberService(IHttpClientFactory httpClient, IConfiguration configuration) : base(httpClient)
         {
-            Url = configuration.GetValue<string>("ApiUrl:applicationUrl")+ "/api/VillaApi/";
+            Url = configuration.GetValue<string>("ApiUrl:applicationUrl") + "/api/VillaNumberApi/";
             _apiRequest = new();
         }
-        public async Task<T> CreateVillaAsync<T>(DtoVillaCreate entity)
+        public async Task<T> CreateVillaNumberAsync<T>(DtoVillaNumberCreate entity)
         {
             return await SendAsync<T>(new ApiRequest()
             {
@@ -29,27 +30,27 @@ namespace MagicVilla_Web.Services.Implementation
 
         }
 
-        public async Task<T> DeleteVillaAsync<T>(int Id)
+        public async Task<T> DeleteVillaNumberAsync<T>(int Id)
         {
             return await SendAsync<T>(new ApiRequest()
             {
-                url = Url+Id,
+                url = Url + Id,
                 apiType = SD.ApiType.Delete
 
             });
         }
 
-        public async Task<T> GetVillaAsync<T>(int Id)
+        public async Task<T> GetVillaNumberAsync<T>(int Id)
         {
             return await SendAsync<T>(new ApiRequest()
             {
-                url = Url+Id,
+                url = Url + Id,
                 apiType = SD.ApiType.Get
 
             });
         }
 
-        public async Task<T> GetVillasAsync<T>()
+        public async Task<T> GetVillaNumbersAsync<T>()
         {
             return await SendAsync<T>(new ApiRequest()
             {
@@ -59,11 +60,11 @@ namespace MagicVilla_Web.Services.Implementation
             });
         }
 
-        public async Task<T> UpdateVillaAsync<T>(int Id, DtoVillaUpdate entity)
+        public async Task<T> UpdateVillaNumberAsync<T>(int Id, DtoVillaNumberUpdate entity)
         {
             return await SendAsync<T>(new ApiRequest()
             {
-                url = Url+Id,
+                url = Url + Id,
                 model = entity,
                 apiType = SD.ApiType.Put
 

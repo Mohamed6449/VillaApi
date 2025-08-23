@@ -1,4 +1,6 @@
-﻿namespace MagicVilla_Web.Dto.VillaNumberDto
+﻿using MagicVilla_Web.Dto.VillaDto;
+
+namespace MagicVilla_Web.Dto.VillaNumberDto
 {
     public class DtoVillaNumberGet
     {
@@ -6,5 +8,7 @@
 
         public string SpitialDetails { get; set; }
         public int VillaId { get; set; }
+        public DtoVillaGet dtoVillaGet { get; set; }
+
     }
 }

@@ -22,7 +22,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
         }
         public async Task<IEnumerable<DtoVillaNumberGet>> GetVillaNumberNumbersAsync()
         {
-            var VillaNumber = await _mapper.ProjectTo<DtoVillaNumberGet>(_Context.VillaNumbers.AsQueryable()).ToListAsync();
+            var VillaNumber = await _mapper.ProjectTo<DtoVillaNumberGet>(_Context.VillaNumbers.Include(i=>i.villa).AsQueryable()).ToListAsync();
             return VillaNumber;
         }
         public async Task<DtoVillaNumberGet> GetVillaNumberAsyncById(int id)
