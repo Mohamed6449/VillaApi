@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -132,19 +133,28 @@ namespace MagicVilla_VillaApi.Services.Implementations
 
             if (!user.EmailConfirmed)
             {
+                var Canresend= CanUserResend(user.Id,"Email");
                 _logger.LogWarning("Email not confirmed for user {Email}", user.Email);
                 response.Errors.Add($"Email not confirmed'{model.Email}'");
                 response.Success = false;
-                response.statusCode = HttpStatusCode.BadRequest;
+                response.result = new DtoConfirmEmail()
+                {
+                    Email = user.Email,
+                    Id = user.Id,
+                    CanResend = Canresend.canResend,
+                    TimeRemain = (Canresend.remainingTime != null) ? (TimeSpan)Canresend.remainingTime : new TimeSpan(0)
+                };
+                response.statusCode = HttpStatusCode.Redirect;
                 return response;
             }
             _logger.LogInformation("User {Email} logged in successfully", user.Email);
             _cache.Remove($"resend_{user.Id}password");
-
+            var roles = (await _userManager.GetRolesAsync(user)).ToArray();
             var dtoUser = _mapper.Map<DtoUser>(user);
             var jwt = await GetJWT(user);
             dtoUser.Teken = jwt.Token;
             dtoUser.expirationDateToken = jwt.Expiration;
+            dtoUser.Roles = roles;
             response.result = dtoUser;
             response.Success = true;
             response.statusCode = HttpStatusCode.OK;
@@ -164,7 +174,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
             }    
 
             var user = await _userManager.FindByNameAsync(username);
-            if (user == null)
+            if (user != null)
             {
                 response.Success = true;
                 response.statusCode = HttpStatusCode.OK;
@@ -224,9 +234,6 @@ namespace MagicVilla_VillaApi.Services.Implementations
                 response.Errors.Add($"IUser with ID {userId} not found");
                 return response;
             }
-
-            token = WebUtility.UrlDecode(token);
-
             var result = await _userManager.ConfirmEmailAsync(user, token);
             if (result.Succeeded)
             {
@@ -288,6 +295,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
             }
                 response.Success = true;
                 response.statusCode = HttpStatusCode.OK;
+                RecordResend(user.Id, "Email");
                 return (response,user);
 
 
@@ -321,6 +329,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
             var resendResult = CanUserResend(user.Id, "password");
             if (!resendResult.canResend)
             {
+
                 response.Success = false;
                 response.statusCode = HttpStatusCode.NotAcceptable;
                 response.Errors.Add("Can Not resent until time out");
@@ -331,6 +340,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
 
             response.Success = true;
             response.statusCode = HttpStatusCode.OK;
+            RecordResend(user.Id, "password");
             return (response,user);
 
 

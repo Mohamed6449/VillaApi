@@ -9,5 +9,6 @@
             Put,
             Delete
         }
+        public static string KeySessionJWT = "JWTSession1144";
     }
 }

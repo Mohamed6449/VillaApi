@@ -8,6 +8,7 @@ namespace MagicVilla_Web.Dto
         public ApiType apiType { set; get; } = ApiType.Get;
         public string url { set; get; }
 
+        public string? token { set; get; }
         public Object model { set; get; }
     }
 }

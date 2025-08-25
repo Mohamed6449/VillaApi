@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using ClassLibrary1
+@inject IHttpContextAccessor HttpContext;
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -30,11 +33,28 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="VillaNumber" asp-action="Index">Villa Number</a>
                         </li>
+                        @if (HttpContext.HttpContext.Session.GetString(SD.KeySessionJWT)!=null
+                            && HttpContext.HttpContext.Session.GetString(SD.KeySessionJWT).ToString().Length>0)
+                        { 
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a>
+                            </li>
+                        }
+                        else
+                        {     
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+    <partial name="_Notifications"></partial>
     <div class="">
         <main role="main" class="pb-3">
             @RenderBody()

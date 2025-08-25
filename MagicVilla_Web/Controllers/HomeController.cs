@@ -1,4 +1,5 @@
 using AutoMapper;
+using ClassLibrary1;
 using MagicVilla_Web.Dto.ApiResponses;
 using MagicVilla_Web.Dto.VillaDto;
 using MagicVilla_Web.Models;
@@ -22,7 +23,7 @@ namespace MagicVilla_Web.Controllers
         public async Task<IActionResult> Index()
         {
             var Villas = new List<DtoVillaGet>();
-            var response = await _service.GetVillasAsync<ApiResponse>();
+            var response = await _service.GetVillasAsync<ApiResponse>(HttpContext.Session.GetString(SD.KeySessionJWT));
             if (response != null)
             {
                 if (response.Success)

@@ -1,0 +1,24 @@
+﻿
+@model string
+
+<div class="text-center mt-5">
+    <h2>🚫 Email Not Confirmed</h2>
+    <p>Your email: <strong>@Model</strong></p>
+    <p>Please check your inbox or click below to resend the confirmation link.</p>
+
+    @if (ViewBag.CanResend == true)
+    {
+        <form asp-action="ResendConfirmation" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="email" value="@Model" />
+            <button type="submit" class="btn btn-primary">📧 Resend Confirmation Email</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-danger">⏳ You can't resend a confirmation email right now. Please try again later.</p>
+        <p>Time remaining: <strong>@ViewBag.RemainingTime</strong></p>
+    }
+</div>
+
+

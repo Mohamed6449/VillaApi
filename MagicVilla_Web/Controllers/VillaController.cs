@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ClassLibrary1;
 using MagicVilla_Web.CustomActionFilter;
 using MagicVilla_Web.Dto.ApiResponses;
 using MagicVilla_Web.Dto.VillaDto;
@@ -21,7 +22,7 @@ namespace MagicVilla_Web.Controllers
         public async Task <IActionResult> Index()
         {
             var Villas = new List<DtoVillaGet>();
-          var response= await _service.GetVillasAsync<ApiResponse>();
+          var response= await _service.GetVillasAsync<ApiResponse>(HttpContext.Session.GetString(SD.KeySessionJWT));
             if(response != null)
             {
                 if (response.Success)
@@ -41,7 +42,7 @@ namespace MagicVilla_Web.Controllers
         {
             if (ModelState.IsValid)
             {
-               var result= await _service.CreateVillaAsync<ApiResponse>(model);
+               var result= await _service.CreateVillaAsync<ApiResponse>(model, HttpContext.Session.GetString(SD.KeySessionJWT));
                 if (result != null && result.Success)
                 {
                     return RedirectToAction(nameof(Index));
@@ -52,7 +53,7 @@ namespace MagicVilla_Web.Controllers
         public async Task< IActionResult> UpdateVilla(int Id)
         {
             var villa=new DtoVillaUpdate();
-             var response=await _service.GetVillaAsync<ApiResponse>(Id);
+             var response=await _service.GetVillaAsync<ApiResponse>(Id, HttpContext.Session.GetString(SD.KeySessionJWT));
             if (response != null&& response.Success)
             {
                var villaGet = JsonConvert.DeserializeObject<DtoVillaGet>(Convert.ToString(response.result));
@@ -70,7 +71,7 @@ namespace MagicVilla_Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateVilla(DtoVillaUpdate model)
         {
-            var result = await _service.UpdateVillaAsync<ApiResponse>(model.Id, model);
+            var result = await _service.UpdateVillaAsync<ApiResponse>(model.Id, model, HttpContext.Session.GetString(SD.KeySessionJWT));
             if (result.Success)
             {
                 return RedirectToAction(nameof(Index));
@@ -79,7 +80,7 @@ namespace MagicVilla_Web.Controllers
         }
         public async Task<IActionResult> DeleteVilla(int Id)
         {
-            var response = await _service.GetVillaAsync<ApiResponse>(Id);
+            var response = await _service.GetVillaAsync<ApiResponse>(Id, HttpContext.Session.GetString(SD.KeySessionJWT));
             if (response != null && response.Success)
             {
                 var villaGet = JsonConvert.DeserializeObject<DtoVillaGet>(Convert.ToString(response.result));
@@ -96,7 +97,7 @@ namespace MagicVilla_Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteVillaPost(int Id)
         {
-           var response=await _service.DeleteVillaAsync<ApiResponse>(Id);
+           var response=await _service.DeleteVillaAsync<ApiResponse>(Id, HttpContext.Session.GetString(SD.KeySessionJWT));
             if (response.Success)
             {
                 return RedirectToAction(nameof(Index));

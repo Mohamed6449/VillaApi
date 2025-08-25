@@ -3,6 +3,7 @@ using CQRS_test.CustomActionFilter;
 using MagicVilla_VillaApi.Dto.ApiResponses;
 using MagicVilla_VillaApi.Dto.VillaDto;
 using MagicVilla_VillaApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,13 @@ using System.Net;
 
 namespace MagicVilla_VillaApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     [ValidationModel]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     public class VillaApiController : ControllerBase
     {
         private readonly ApiResponse _ApiResponse;
@@ -29,10 +33,20 @@ namespace MagicVilla_VillaApi.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task <ActionResult<ApiResponse>> GetVillas()
+        [AllowAnonymous]
+        [ResponseCache(Duration =30)]
+      
+        public async Task <ActionResult<ApiResponse>> GetVillas([FromQuery(Name ="Filter")]int? occumpancy)
         {
-            _ApiResponse.statusCode = HttpStatusCode.OK;
-            _ApiResponse.result = await _villaService.GetVillasAsync();
+            if (occumpancy > 0)
+            {
+                 _ApiResponse.result = await _villaService.GetVillasAsync(A=>A.Occupancy==occumpancy);
+            }
+            else
+            {
+                _ApiResponse.result = await _villaService.GetVillasAsync();
+            }
+             _ApiResponse.statusCode = HttpStatusCode.OK;
             return Ok(_ApiResponse);
         }
 
@@ -42,8 +56,10 @@ namespace MagicVilla_VillaApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [MapToApiVersion("2.0")]
         public async Task<ActionResult<ApiResponse>> GetVilla(int id)
         {
+            
             var villa = await _villaService.GetVillaAsyncById(id);
             if (villa == null)
             {

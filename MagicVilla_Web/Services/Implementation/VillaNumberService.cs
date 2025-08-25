@@ -16,13 +16,14 @@ namespace MagicVilla_Web.Services.Implementation
             Url = configuration.GetValue<string>("ApiUrl:applicationUrl") + "/api/VillaNumberApi/";
             _apiRequest = new();
         }
-        public async Task<T> CreateVillaNumberAsync<T>(DtoVillaNumberCreate entity)
+        public async Task<T> CreateVillaNumberAsync<T>(DtoVillaNumberCreate entity,string token)
         {
             return await SendAsync<T>(new ApiRequest()
             {
                 url = Url,
                 model = entity,
-                apiType = SD.ApiType.Post
+                apiType = SD.ApiType.Post,
+                token = token
 
             });
 
@@ -30,43 +31,47 @@ namespace MagicVilla_Web.Services.Implementation
 
         }
 
-        public async Task<T> DeleteVillaNumberAsync<T>(int Id)
+        public async Task<T> DeleteVillaNumberAsync<T>(int Id, string token)
         {
             return await SendAsync<T>(new ApiRequest()
             {
                 url = Url + Id,
-                apiType = SD.ApiType.Delete
+                apiType = SD.ApiType.Delete,
+                token = token
 
             });
         }
 
-        public async Task<T> GetVillaNumberAsync<T>(int Id)
+        public async Task<T> GetVillaNumberAsync<T>(int Id, string token)
         {
             return await SendAsync<T>(new ApiRequest()
             {
                 url = Url + Id,
-                apiType = SD.ApiType.Get
+                apiType = SD.ApiType.Get,
+                token = token
 
             });
         }
 
-        public async Task<T> GetVillaNumbersAsync<T>()
+        public async Task<T> GetVillaNumbersAsync<T>(string token)
         {
             return await SendAsync<T>(new ApiRequest()
             {
                 url = Url,
-                apiType = SD.ApiType.Get
+                apiType = SD.ApiType.Get,
+                token = token
 
             });
         }
 
-        public async Task<T> UpdateVillaNumberAsync<T>(int Id, DtoVillaNumberUpdate entity)
+        public async Task<T> UpdateVillaNumberAsync<T>(int Id, DtoVillaNumberUpdate entity, string token)
         {
             return await SendAsync<T>(new ApiRequest()
             {
                 url = Url + Id,
                 model = entity,
-                apiType = SD.ApiType.Put
+                apiType = SD.ApiType.Put,
+                token = token
 
             });
         }

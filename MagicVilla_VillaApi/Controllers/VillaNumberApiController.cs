@@ -5,6 +5,7 @@ using MagicVilla_VillaApi.Dto.VillaDto;
 using MagicVilla_VillaApi.Dto.VillaNumberDto;
 using MagicVilla_VillaApi.Services.Implementations;
 using MagicVilla_VillaApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ namespace MagicVilla_VillaApi.Controllers
     [ApiController]
     [ValidationModel]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize]
     public class VillaNumberApiController : ControllerBase
     {
         private readonly ApiResponse _ApiResponse;
@@ -31,6 +33,7 @@ namespace MagicVilla_VillaApi.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [AllowAnonymous]
         public async Task <ActionResult<ApiResponse>> GetVillas()
         {
             _ApiResponse.statusCode = HttpStatusCode.OK;

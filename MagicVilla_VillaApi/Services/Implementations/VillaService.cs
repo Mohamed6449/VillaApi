@@ -6,6 +6,8 @@ using MagicVilla_VillaApi.Models;
 using MagicVilla_VillaApi.Services.Interfaces;
 using MagicVilla_VillaApi.SharedRepo;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace MagicVilla_VillaApi.Services.Implementations
 {
@@ -20,10 +22,15 @@ namespace MagicVilla_VillaApi.Services.Implementations
             _mapper = mapper;
             _sharedRepo = sharedRepo;
         }
-        public async Task<IEnumerable<DtoVillaGet>> GetVillasAsync()
+        public async Task<IEnumerable<DtoVillaGet>> GetVillasAsync(Expression<Func<Villa,bool>>func=null)
         {
-            var villa = await _mapper.ProjectTo<DtoVillaGet>(_Context.Villas.AsQueryable()).ToListAsync();
-            return villa;
+            if (func == null)
+            {
+            return await _mapper.ProjectTo<DtoVillaGet>(_Context.Villas.AsQueryable()).ToListAsync();
+
+            }
+           var filter= _Context.Villas.Where(func).AsQueryable();
+            return  await _mapper.ProjectTo<DtoVillaGet>(filter).ToListAsync();
         }
         public async Task<DtoVillaGet> GetVillaAsyncById(int id)
         {

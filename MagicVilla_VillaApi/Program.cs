@@ -6,8 +6,12 @@ using MagicVilla_VillaApi.Services.Implementations;
 using MagicVilla_VillaApi.Services.Interfaces;
 using MagicVilla_VillaApi.Services.InterFaces;
 using MagicVilla_VillaApi.SharedRepo;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +66,19 @@ builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 builder.Services.AddAutoMapper(typeof(VillaProfile));
+builder.Services.AddApiVersioning(option =>
+{
+    option.AssumeDefaultVersionWhenUnspecified = true;
+    option.DefaultApiVersion = new ApiVersion(1 , 0);
+    option.ReportApiVersions= true;
+
+});
+builder.Services.AddVersionedApiExplorer(option => {
+    option.GroupNameFormat = "'v'VVV";
+    option.SubstituteApiVersionInUrl = true;
+});
+
+
 
 Log.Logger=new LoggerConfiguration().MinimumLevel.Debug()
     .WriteTo.File("logs/villaLogs.txt")
@@ -72,6 +89,60 @@ builder.Services.AddScoped<IVillaService, VillaService>();
 builder.Services.AddScoped<IVillaNumberService, VillaNumberService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+#region Authontication
+builder.Services.AddAuthentication(option=>
+{
+    option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    option.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+        .AddJwtBearer("Bearer", options =>
+        {
+            options.RequireHttpsMetadata = false;// áæ ãÔ ÔÛÇá Úáì https
+            options.SaveToken = true; // áÍÝÙ ÇáÊæßä Ýí Çá HTTP Context
+
+            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer =builder.Configuration["JWT:Issuer"],
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,// ÇáÊÍÞÞ ãä ÇáãÝÊÇÍ ÇáãÓÊÎÏã Ýí ÇáÊæÞíÚ áæ ÚäÏß æÇÍÏ ÈÓ
+                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
+            };
+        });
+
+builder.Services.AddSwaggerGen(o =>
+{
+    o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+
+        Description = "Enter the JWT Key"
+    });
+    o.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme()
+                        {
+                            Reference = new OpenApiReference()
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+                });
+
+});
+
+#endregion
 
 var app = builder.Build();
 
