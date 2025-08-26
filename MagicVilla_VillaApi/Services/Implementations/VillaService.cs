@@ -22,16 +22,29 @@ namespace MagicVilla_VillaApi.Services.Implementations
             _mapper = mapper;
             _sharedRepo = sharedRepo;
         }
-        public async Task<IEnumerable<DtoVillaGet>> GetVillasAsync(Expression<Func<Villa,bool>>func=null)
+        public async Task<IEnumerable<DtoVillaGet>> GetVillasAsync(Expression<Func<Villa,bool>>func=null, int pageNumber = 1, int pageSize = 6)
         {
-            if (func == null)
+            IQueryable<Villa> villas=_Context.Villas.AsQueryable();
+            if (func != null)
             {
-            return await _mapper.ProjectTo<DtoVillaGet>(_Context.Villas.AsQueryable()).ToListAsync();
-
+                villas= villas.Where(func);
             }
-           var filter= _Context.Villas.Where(func).AsQueryable();
-            return  await _mapper.ProjectTo<DtoVillaGet>(filter).ToListAsync();
+            if (pageNumber > 0)
+            {
+                if (pageSize > 100)
+                {
+                    pageSize = 100;
+                }
+                villas=villas.Skip(pageSize*(pageNumber-1)).Take(pageSize);
+            }
+            return  await _mapper.ProjectTo<DtoVillaGet>(villas).ToListAsync();
         }
+
+
+
+
+
+
         public async Task<DtoVillaGet> GetVillaAsyncById(int id)
         {
             return await _mapper.ProjectTo<DtoVillaGet>(_Context.Villas.AsQueryable()).FirstOrDefaultAsync(v => v.Id == id);

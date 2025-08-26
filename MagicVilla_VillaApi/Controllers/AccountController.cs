@@ -18,7 +18,8 @@ using System.Text;
 namespace MagicVilla_VillaApi.Controllers
 {
     [ApiController]
-    [Route("Api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+
 
     public class AccountController : ControllerBase
     {

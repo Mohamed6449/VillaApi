@@ -1,23 +1,21 @@
 ﻿using AutoMapper;
 using CQRS_test.CustomActionFilter;
 using MagicVilla_VillaApi.Dto.ApiResponses;
-using MagicVilla_VillaApi.Dto.VillaDto;
 using MagicVilla_VillaApi.Dto.VillaNumberDto;
-using MagicVilla_VillaApi.Services.Implementations;
 using MagicVilla_VillaApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
+
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace MagicVilla_VillaApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     [ValidationModel]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize]
+    [ApiVersion("1.0")]
     public class VillaNumberApiController : ControllerBase
     {
         private readonly ApiResponse _ApiResponse;

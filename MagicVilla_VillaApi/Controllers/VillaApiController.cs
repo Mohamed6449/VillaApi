@@ -2,6 +2,7 @@
 using CQRS_test.CustomActionFilter;
 using MagicVilla_VillaApi.Dto.ApiResponses;
 using MagicVilla_VillaApi.Dto.VillaDto;
+using MagicVilla_VillaApi.Models;
 using MagicVilla_VillaApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,13 +12,12 @@ using System.Net;
 
 namespace MagicVilla_VillaApi.Controllers
 {
+    [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     [ValidationModel]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize]
-    [ApiVersion("1.0")]
-    [ApiVersion("2.0")]
     public class VillaApiController : ControllerBase
     {
         private readonly ApiResponse _ApiResponse;
@@ -35,17 +35,23 @@ namespace MagicVilla_VillaApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [AllowAnonymous]
         [ResponseCache(Duration =30)]
-      
-        public async Task <ActionResult<ApiResponse>> GetVillas([FromQuery(Name ="Filter")]int? occumpancy)
+        [MapToApiVersion("2.0")]
+        public async Task <ActionResult<ApiResponse>> GetVillas([FromQuery(Name ="Filter")]int? occumpancy,[FromQuery(Name="Search")]string? search, int pageNumber = 1, int pageSize = 6)
         {
+            IEnumerable<DtoVillaGet> villas;
             if (occumpancy > 0)
             {
-                 _ApiResponse.result = await _villaService.GetVillasAsync(A=>A.Occupancy==occumpancy);
+                villas = await _villaService.GetVillasAsync(A=>A.Occupancy==occumpancy,pageNumber,pageSize);
             }
             else
             {
-                _ApiResponse.result = await _villaService.GetVillasAsync();
+                villas  = await _villaService.GetVillasAsync(pageNumber:pageNumber,pageSize:pageSize);
             }
+            if (search != null)
+            {
+                villas = villas.Where(W=>W.Name.ToLower().Contains(search.ToLower()));
+            }
+            _ApiResponse.result = villas;
              _ApiResponse.statusCode = HttpStatusCode.OK;
             return Ok(_ApiResponse);
         }
@@ -56,7 +62,7 @@ namespace MagicVilla_VillaApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [MapToApiVersion("2.0")]
+
         public async Task<ActionResult<ApiResponse>> GetVilla(int id)
         {
             
