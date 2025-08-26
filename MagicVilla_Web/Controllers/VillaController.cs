@@ -86,9 +86,13 @@ namespace MagicVilla_Web.Controllers
                 var villaGet = JsonConvert.DeserializeObject<DtoVillaGet>(Convert.ToString(response.result));
                 return View(villaGet);
             }
-            foreach (var item in response.Errors)
+            if (response!=null)
             {
-                ModelState.AddModelError("", item);
+
+                foreach (var item in response.Errors)
+                {
+                    ModelState.AddModelError("", item);
+                }
             }
             return NotFound();
         }

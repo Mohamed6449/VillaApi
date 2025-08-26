@@ -19,7 +19,7 @@ namespace MagicVilla_VillaApi.Controllers
 {
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
-
+    [ApiVersionNeutral]//not belong to any versions
 
     public class AccountController : ControllerBase
     {

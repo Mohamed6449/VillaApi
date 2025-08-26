@@ -10,7 +10,7 @@ namespace MagicVilla_VillaApi.Dto.ApiResponses
 
         public object? result { get; set; }
 
-        public List<string> Errors { get; set; }= new List<string>();
+        public List<string> Errors { get; set; } = new List<string>();
 
 
     }

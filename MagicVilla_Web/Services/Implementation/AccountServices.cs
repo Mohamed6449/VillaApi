@@ -17,7 +17,7 @@ namespace MagicVilla_Web.Services.Implementation
             _httpClientFactory = httpClientFactory;
             _Request = new ApiRequest()
             {
-                url = configuration.GetValue<string>("ApiUrl:applicationUrl") + "/Api/Account/"
+                url = configuration.GetValue<string>("ApiUrl:applicationUrl") + "/Api/v1/Account/"
             };
         }
 
