@@ -83,6 +83,7 @@ builder.Services.AddScoped(typeof(IGenericRepo<>), typeof(GenericRepo<>));
 builder.Services.AddScoped<IVillaService, VillaService>();
 builder.Services.AddScoped<IVillaNumberService, VillaNumberService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IFileService,FileService>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 #region Authentication
@@ -164,7 +165,7 @@ app.UseSwaggerUI(options =>
     // œ« «··Ì »ÌŒ·Ìﬂ  › Õ ’›Õ… UI ⁄·Ï ÿÊ· „‘ JSON
     options.RoutePrefix = string.Empty;
 });
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

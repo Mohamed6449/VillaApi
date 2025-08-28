@@ -1,71 +1,79 @@
 ﻿@model DtoVillaUpdate
 
-<form asp-action="UpdateVilla">
+<form asp-action="UpdateVilla" enctype="multipart/form-data">
 	<br />
 	<div class="container border p-3">
 		<h1 class="text-primary">Update Villa</h1>
 		<hr />
 		@Html.AntiForgeryToken()
 		<div class="row">
-			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
-			<div class="col-2">
-				<label asp-for="Name" class="control-label pt-2" style="font-size:20px;"></label>
-			</div>
-			<div class="col-10 pb-3">
-				<input class="form-control" asp-for="Name" />
-				<span asp-validation-for="Name" class="text-danger"></span>
-			</div>
 
-			<div class="col-2">
-				<label asp-for="Rate" class="control-label pt-2" style="font-size:20px;"></label>
-			</div>
-			<div class="col-10 pb-3">
-				<input class="form-control" asp-for="Rate" />
-				<span asp-validation-for="Rate" class="text-danger"></span>
-			</div>
+			<div class="col-10">
+				<div class="row">
+					<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+					<div class="col-2">
+						<label asp-for="Name" class="control-label pt-2" style="font-size:20px;"></label>
+					</div>
+					<div class="col-10 pb-3">
+						<input class="form-control" asp-for="Name" />
+						<span asp-validation-for="Name" class="text-danger"></span>
+					</div>
+
+					<div class="col-2">
+						<label asp-for="Rate" class="control-label pt-2" style="font-size:20px;"></label>
+					</div>
+					<div class="col-10 pb-3">
+						<input class="form-control" asp-for="Rate" />
+						<span asp-validation-for="Rate" class="text-danger"></span>
+					</div>
 
 
+					<div class="col-2">
+						<label asp-for="Details" class="control-label pt-2" style="font-size:20px;"></label>
+					</div>
+					<div class="col-10 pb-3">
+						<textarea class="form-control" rows="5" asp-for="Details"></textarea>
+						<span asp-validation-for="Details" class="text-danger"></span>
+					</div>
+					<div class="col-2">
+						<label asp-for="File" class="control-label pt-2" style="font-size:20px;"></label>
+					</div>
+					<div class="col-10 pb-3">
+						<input type="file" class="form-control" asp-for="File" />
+						<span asp-validation-for="File" class="text-danger"></span>
+					</div>
+					<div class="col-2">
+						<label asp-for="Occupancy" class="control-label pt-2" style="font-size:20px;"></label>
+					</div>
+					<div class="col-10 pb-3">
+						<input class="form-control" asp-for="Occupancy" />
+						<span asp-validation-for="Occupancy" class="text-danger"></span>
+					</div>
+					<div class="col-2">
+						<label asp-for="Sqft" class="control-label pt-2" style="font-size:20px;"></label>
+					</div>
+					<div class="col-10 pb-3">
+						<input class="form-control" asp-for="Sqft" />
+						<span asp-validation-for="Sqft" class="text-danger"></span>
+					</div>
+					<div class="col-2">
+						<label asp-for="Amenity" class="control-label pt-2" style="font-size:20px;"></label>
+					</div>
+					<div class="col-10 pb-3">
+						<textarea rows="5" class="form-control" asp-for="Amenity"></textarea>
+						<span asp-validation-for="Amenity" class="text-danger"></span>
+					</div>
+					<div class="col-5 offset-2">
+						<a asp-action="Index" class="btn btn-primary form-control">Back To List</a>
+					</div>
+					<div class="col-5">
+
+						<input type="submit" value="Update" class="btn btn-success form-control" />
+					</div>
+				</div>
+			</div>
 			<div class="col-2">
-				<label asp-for="Details" class="control-label pt-2" style="font-size:20px;"></label>
-			</div>
-			<div class="col-10 pb-3">
-				<textarea class="form-control" rows="5" asp-for="Details"></textarea>
-				<span asp-validation-for="Details" class="text-danger"></span>
-			</div>
-			<div class="col-2">
-				<label asp-for="ImageUrl" class="control-label pt-2" style="font-size:20px;"></label>
-			</div>
-			<div class="col-10 pb-3">
-				<input class="form-control" asp-for="ImageUrl" />
-				<span asp-validation-for="ImageUrl" class="text-danger"></span>
-			</div>
-			<div class="col-2">
-				<label asp-for="Occupancy" class="control-label pt-2" style="font-size:20px;"></label>
-			</div>
-			<div class="col-10 pb-3">
-				<input class="form-control" asp-for="Occupancy" />
-				<span asp-validation-for="Occupancy" class="text-danger"></span>
-			</div>
-			<div class="col-2">
-				<label asp-for="Sqft" class="control-label pt-2" style="font-size:20px;"></label>
-			</div>
-			<div class="col-10 pb-3">
-				<input class="form-control" asp-for="Sqft" />
-				<span asp-validation-for="Sqft" class="text-danger"></span>
-			</div>
-			<div class="col-2">
-				<label asp-for="Amenity" class="control-label pt-2" style="font-size:20px;"></label>
-			</div>
-			<div class="col-10 pb-3">
-				<textarea rows="5" class="form-control" asp-for="Amenity"></textarea>
-				<span asp-validation-for="Amenity" class="text-danger"></span>
-			</div>
-			<div class="col-5 offset-2">
-				<a asp-action="Index" class="btn btn-primary form-control">Back To List</a>
-			</div>
-			<div class="col-5">
-				
-				<input type="submit" value="Update" class="btn btn-success form-control"/>
+				<img class="w-100" asp-append-version="true"  src=@Model.UrlImg" alt=""/>
 			</div>
 		</div>
 

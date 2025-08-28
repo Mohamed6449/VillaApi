@@ -2,22 +2,20 @@
 using CQRS_test.CustomActionFilter;
 using MagicVilla_VillaApi.Dto.ApiResponses;
 using MagicVilla_VillaApi.Dto.VillaDto;
-using MagicVilla_VillaApi.Models;
 using MagicVilla_VillaApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
-namespace MagicVilla_VillaApi.Controllers.v1
+namespace MagicVilla_VillaApi.Controllers.v2
 {
-    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     [ValidationModel]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Authorize]
+    //[Authorize]
     public class VillaApiController : ControllerBase
     {
         private readonly ApiResponse _ApiResponse;
@@ -81,12 +79,13 @@ namespace MagicVilla_VillaApi.Controllers.v1
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse>> CreateVilla([FromBody]DtoVillaCreate model)
+        public async Task<ActionResult<ApiResponse>> CreateVilla([FromForm]DtoVillaCreate model)
         {
-    
-            await  _villaService.CreateVilla( model);
+             var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            await  _villaService.CreateVilla(model, baseUrl);
             _ApiResponse.statusCode = HttpStatusCode.Created;
             _ApiResponse.result = model;
+
             return Ok(_ApiResponse);
         }
 
@@ -97,9 +96,11 @@ namespace MagicVilla_VillaApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse>> UpdateVilla(int id,[FromBody]DtoVillaUpdate model)
+        public async Task<ActionResult<ApiResponse>> UpdateVilla(int id,[FromForm]DtoVillaUpdate model)
         {
-            var result= await  _villaService.UpdateVilla(id, model);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+  
+            var result= await  _villaService.UpdateVilla(id, model, baseUrl);
             if (!result)
             {
                 _ApiResponse.statusCode = HttpStatusCode.NotFound;

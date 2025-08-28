@@ -16,10 +16,12 @@ namespace MagicVilla_VillaApi.SharedRepo
 
         }
 
-        public async Task AddAsync(T entity)
+        public async Task<T> AddAsync(T entity)
         {
-          await _dbSet.AddAsync(entity);
+         var result= await _dbSet.AddAsync(entity);
+
             await SaveAsync();
+            return result.Entity;
         }
 
         public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null)

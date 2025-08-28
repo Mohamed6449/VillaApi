@@ -13,7 +13,7 @@ namespace MagicVilla_Web.Services.Implementation
         private readonly string Url;
         public VillaNumberService(IHttpClientFactory httpClient, IConfiguration configuration) : base(httpClient)
         {
-            Url = configuration.GetValue<string>("ApiUrl:applicationUrl") + "/api/v1/VillaNumberApi/";
+            Url = configuration.GetValue<string>("ApiUrl:applicationUrl") + $"/api/{SD.CurrentVersion}/VillaNumberApi/";
             _apiRequest = new();
         }
         public async Task<T> CreateVillaNumberAsync<T>(DtoVillaNumberCreate entity,string token)

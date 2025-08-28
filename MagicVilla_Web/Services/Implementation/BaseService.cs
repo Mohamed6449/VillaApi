@@ -26,26 +26,58 @@ namespace MagicVilla_Web.Services.Implementation
             var client= _httpClientFactory.CreateClient("MagicVilla");
             HttpRequestMessage message = new HttpRequestMessage();
             message.RequestUri =new Uri( apiRequest.url);
-            message.Headers.Add("Accept", "application/json");
-            switch (apiRequest.apiType)
+            if (apiRequest.contentType == ContentType.Fille)
             {
-                case SD.ApiType.Put:
-                    message.Method=HttpMethod.Put;
-                    break;
-                case SD.ApiType.Post:
-                    message.Method = HttpMethod.Post;
-                    break;
-                case SD.ApiType.Delete:
-                    message.Method = HttpMethod.Delete;
-                    break;
-                default:
-                    message.Method = HttpMethod.Get;
-                    break;
+
+                message.Headers.Add("Accept", "*/*");
+                var content = new MultipartFormDataContent();
+                foreach(var item in apiRequest.model.GetType().GetProperties())
+                {
+                    var value= item.GetValue(apiRequest.model);
+                   
+                    if(value is IFormFile)
+                    {
+                        var formFile = (IFormFile)value;
+                        if(formFile != null)
+                        {
+
+                            content.Add(new StreamContent(formFile.OpenReadStream()),item.Name,formFile.FileName);
+                        }
+                    }
+                    else
+                    {
+                        content.Add(new StringContent((value!=null)?value.ToString():""), item.Name);
+                    }
+                }
+                message.Content = content;
+
             }
-            if (apiRequest.model != null)
+            else
             {
-                message.Content = new StringContent(JsonConvert.SerializeObject(apiRequest.model),Encoding.UTF8, "application/json");
+                message.Headers.Add("Accept", "application/json");
+                if (apiRequest.model != null)
+                {
+                    message.Content = new StringContent(JsonConvert.SerializeObject(apiRequest.model), Encoding.UTF8, "application/json");
+                }
+
             }
+
+                switch (apiRequest.apiType)
+                {
+                    case SD.ApiType.Put:
+                        message.Method = HttpMethod.Put;
+                        break;
+                    case SD.ApiType.Post:
+                        message.Method = HttpMethod.Post;
+                        break;
+                    case SD.ApiType.Delete:
+                        message.Method = HttpMethod.Delete;
+                        break;
+                    default:
+                        message.Method = HttpMethod.Get;
+                        break;
+                }
+
             if(apiRequest.token != null)
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",apiRequest.token);

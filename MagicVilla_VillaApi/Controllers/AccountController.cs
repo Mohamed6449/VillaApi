@@ -137,5 +137,21 @@ namespace MagicVilla_VillaApi.Controllers
             return Ok(response);
 
         }
+
+        [HttpPost("Register")]
+        public async Task<ActionResult> RefreshTokenDto([FromBody] DtoUser register)
+        {
+            var result = await _accountService.Register();
+            if (result.response.Success)
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(result.user);
+                var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = result.user.Id, token = token }, Request.Scheme);
+                await _emailSender.SendEmailAsync(result.user.Email, "Confirm your email", confirmationLink, 1);
+            }
+            return Ok(result.response);
+
+        }
+
+
     }
 }

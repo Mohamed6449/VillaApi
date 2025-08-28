@@ -435,5 +435,10 @@ namespace MagicVilla_VillaApi.Services.Implementations
             return (JwtSecurity, token.ValidTo);
 
         }
+
+        public async Task<DtoUser> GetNewTokenFromRefreshToken(DtoUser dtoUser)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

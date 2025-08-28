@@ -7,7 +7,7 @@ namespace MagicVilla_VillaApi.SharedRepo
         public Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null);
         public Task<T> GetAsync(Expression<Func<T, bool>>? filter = null, bool tracking=false);
 
-        public Task AddAsync (T entity);
+        public Task<T> AddAsync (T entity);
 
         public Task UpdateAsync(T entity);
 

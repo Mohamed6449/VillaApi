@@ -1,5 +1,6 @@
-﻿using static ClassLibrary1.SD;
-using System.IO.Pipelines;
+﻿using ClassLibrary1;
+using static ClassLibrary1.SD;
+
 
 namespace MagicVilla_Web.Dto
 {
@@ -10,6 +11,8 @@ namespace MagicVilla_Web.Dto
 
         public string? token { set; get; }
         public Object model { set; get; }
+
+        public ContentType contentType { set; get; } = ContentType.Json;
     }
 }
     

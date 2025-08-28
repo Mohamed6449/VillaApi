@@ -50,7 +50,7 @@ namespace MagicVilla_VillaApi.Controllers
                 var principal = new ClaimsPrincipal(identity);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal);
 
-                HttpContext.Session.SetString(SD.KeySessionJWT,userData.Teken);
+                HttpContext.Session.SetString(SD.AccessToken,userData.Teken);
                return RedirectToAction("Index", "Home");
             }
             if(result.statusCode== HttpStatusCode.Redirect)
@@ -89,7 +89,7 @@ namespace MagicVilla_VillaApi.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-            HttpContext.Session.SetString(SD.KeySessionJWT, "");
+            HttpContext.Session.SetString(SD.AccessToken, "");
             return RedirectToAction("Index","Home");
         }
 

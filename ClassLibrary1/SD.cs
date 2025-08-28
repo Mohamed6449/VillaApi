@@ -9,6 +9,13 @@
             Put,
             Delete
         }
-        public static string KeySessionJWT = "JWTSession1144";
+        public static string AccessToken = "JWTSession1144";
+        public static string CurrentVersion = "v2";
+    }
+
+    public enum ContentType
+    {
+        Json,
+        Fille
     }
 }
