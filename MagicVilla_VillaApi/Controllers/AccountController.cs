@@ -42,7 +42,6 @@ namespace MagicVilla_VillaApi.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult<ApiResponse>> Login([FromBody] LoginViewModel model)
         {
-
             return Ok(await _accountService.Login(model));
         }
 
@@ -61,6 +60,14 @@ namespace MagicVilla_VillaApi.Controllers
             return Ok(result.response);
 
         }
+
+        [HttpPost("RefreshToken")]
+        public async Task <ActionResult<ApiResponse>> GetNewTokenFromRefreshToken([FromBody]DtoUser dtoUser)
+        {
+                return Ok(await _accountService.GetNewTokenFromRefreshToken(dtoUser));   
+
+        }
+
 
 
         [HttpGet("IsUserNameAvailable")]
@@ -138,19 +145,19 @@ namespace MagicVilla_VillaApi.Controllers
 
         }
 
-        [HttpPost("Register")]
-        public async Task<ActionResult> RefreshTokenDto([FromBody] DtoUser register)
-        {
-            var result = await _accountService.Register();
-            if (result.response.Success)
-            {
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(result.user);
-                var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = result.user.Id, token = token }, Request.Scheme);
-                await _emailSender.SendEmailAsync(result.user.Email, "Confirm your email", confirmationLink, 1);
-            }
-            return Ok(result.response);
+        //[HttpPost("Register")]
+        //public async Task<ActionResult> RefreshTokenDto([FromBody] DtoUser register)
+        //{
+        //    var result = await _accountService.Register(register);
+        //    if (result.response.Success)
+        //    {
+        //        var token = await _userManager.GenerateEmailConfirmationTokenAsync(result.user);
+        //        var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = result.user.Id, token = token }, Request.Scheme);
+        //        await _emailSender.SendEmailAsync(result.user.Email, "Confirm your email", confirmationLink, 1);
+        //    }
+        //    return Ok(result.response);
 
-        }
+        //}
 
 
     }

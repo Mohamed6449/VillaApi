@@ -14,6 +14,7 @@ builder.Services.AddHttpClient<IVillaNumberService, VillaNumberService>();
 builder.Services.AddScoped<IVillaNumberService, VillaNumberService>();
 builder.Services.AddHttpClient<IAccountServices, AccountServices>();
 builder.Services.AddScoped<IAccountServices, AccountServices>();
+builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 
 #region Session 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

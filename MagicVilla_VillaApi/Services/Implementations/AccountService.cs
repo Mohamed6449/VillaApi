@@ -6,8 +6,10 @@ using MagicVilla_VillaApi.Dto.ApiResponses;
 using MagicVilla_VillaApi.Dto.Identity;
 using MagicVilla_VillaApi.Models;
 using MagicVilla_VillaApi.Services.InterFaces;
+using MagicVilla_VillaApi.SharedRepo;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
@@ -27,12 +29,13 @@ namespace MagicVilla_VillaApi.Services.Implementations
         private readonly UserManager<User> _userManager;
         private readonly ILogger<AccountService> _logger;
         private readonly ApplicationDbContext _Context;
+        private readonly IGenericRepo<RefreshToken> _sharedRepo;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
         public AccountService(IMemoryCache cache, UserManager<User> userManager
             , ApplicationDbContext context, ILogger<AccountService> logger, IMapper mapper
-            , IConfiguration configuration)
+            , IConfiguration configuration, IGenericRepo<RefreshToken> sharedRepo)
         {
             _mapper = mapper;
             _logger = logger;
@@ -40,10 +43,11 @@ namespace MagicVilla_VillaApi.Services.Implementations
             _cache = cache;
             _userManager = userManager;
             _configuration = configuration;
+            _sharedRepo = sharedRepo;
         }
 
 
-        public async Task<(ApiResponse response,User user)> Register(RegisterViewModel register)
+        public async Task<(ApiResponse response, User user)> Register(RegisterViewModel register)
         {
             var response = new ApiResponse();
             register.Email = register.Email.Trim().ToLower();
@@ -55,7 +59,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
                 response.Errors.Add($"{Exist} already exists");
                 response.Success = false;
                 response.statusCode = HttpStatusCode.Conflict;
-                return (response,null);
+                return (response, null);
             }
 
 
@@ -76,7 +80,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
                     response.statusCode = HttpStatusCode.NotAcceptable;
                     return (response, null);
                 }
-                
+
                 await transaction.CommitAsync();
                 response.Success = true;
                 response.statusCode = HttpStatusCode.Created;
@@ -85,18 +89,18 @@ namespace MagicVilla_VillaApi.Services.Implementations
             }
             catch (Exception ex)
             {
-               await transaction.RollbackAsync();
+                await transaction.RollbackAsync();
                 response.Errors.Add($"Error: {ex.Message}");
                 response.Success = false;
                 response.statusCode = HttpStatusCode.InternalServerError;
                 return (response, null);
             }
-    }
+        }
 
         public async Task<ApiResponse> Login(LoginViewModel model)
         {
             var response = new ApiResponse();
-            model.Email= model.Email.Trim().ToLower();
+            model.Email = model.Email.Trim().ToLower();
             var isEmailValid = new EmailAddressAttribute().IsValid(model.Email);
             User user = null;
 
@@ -133,7 +137,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
 
             if (!user.EmailConfirmed)
             {
-                var Canresend= CanUserResend(user.Id,"Email");
+                var Canresend = CanUserResend(user.Id, "Email");
                 _logger.LogWarning("Email not confirmed for user {Email}", user.Email);
                 response.Errors.Add($"Email not confirmed'{model.Email}'");
                 response.Success = false;
@@ -149,29 +153,31 @@ namespace MagicVilla_VillaApi.Services.Implementations
             }
             _logger.LogInformation("User {Email} logged in successfully", user.Email);
             _cache.Remove($"resend_{user.Id}password");
-            var roles = (await _userManager.GetRolesAsync(user)).ToArray();
-            var dtoUser = _mapper.Map<DtoUser>(user);
-            var jwt = await GetJWT(user);
-            dtoUser.Teken = jwt.Token;
-            dtoUser.expirationDateToken = jwt.Expiration;
-            dtoUser.Roles = roles;
+            var tokenId = Guid.NewGuid().ToString();
+            var jwt = await GetJWT(user.Id, tokenId);
+            var refreshToken = await CreateRefreshToken(user.Id, tokenId);
+            var dtoUser = new DtoUser()
+            {
+                RefreshToken = refreshToken,
+                Token = jwt
+
+            };
             response.result = dtoUser;
             response.Success = true;
             response.statusCode = HttpStatusCode.OK;
             return response;
         }
 
-
         public async Task<ApiResponse> IsUserNameAvailable(string username)
         {
-            var response =new ApiResponse();
+            var response = new ApiResponse();
             if (string.IsNullOrWhiteSpace(username))
             {
                 response.Success = false;
                 response.statusCode = HttpStatusCode.BadRequest;
                 response.Errors.Add("Username is required");
                 return response;
-            }    
+            }
 
             var user = await _userManager.FindByNameAsync(username);
             if (user != null)
@@ -183,13 +189,13 @@ namespace MagicVilla_VillaApi.Services.Implementations
             response.statusCode = HttpStatusCode.Conflict;
             response.Errors.Add("Username is Exist");
             response.Success = false;
-            
-                return response;
+
+            return response;
         }
 
         public async Task<ApiResponse> IsEmailAvailable(string Email)
         {
-            var response =new ApiResponse();
+            var response = new ApiResponse();
 
             if (string.IsNullOrWhiteSpace(Email))
             {
@@ -210,13 +216,13 @@ namespace MagicVilla_VillaApi.Services.Implementations
             response.statusCode = HttpStatusCode.Conflict;
             response.Errors.Add("Email is Exist");
             response.Success = false;
-            
-                return response;
+
+            return response;
         }
 
-        public async Task<ApiResponse> ConfirmEmail( string userId, string token)
+        public async Task<ApiResponse> ConfirmEmail(string userId, string token)
         {
-            var response =new ApiResponse();
+            var response = new ApiResponse();
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
             {
                 response.Success = false;
@@ -248,7 +254,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
             return response;
         }
 
-        public async Task<(ApiResponse response,User user)> ResendConfirmation(string email)
+        public async Task<(ApiResponse response, User user)> ResendConfirmation(string email)
         {
             var response = new ApiResponse();
             if (string.IsNullOrWhiteSpace(email))
@@ -257,7 +263,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
                     response.Success = false;
                     response.statusCode = HttpStatusCode.BadRequest;
                     response.Errors.Add("Email is required");
-                    return (response,null);
+                    return (response, null);
                 }
             }
 
@@ -269,7 +275,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
                 response.Success = false;
                 response.statusCode = HttpStatusCode.NotFound;
                 response.Errors.Add("User not found");
-                return (response,null);
+                return (response, null);
             }
 
             if (user.EmailConfirmed)
@@ -278,7 +284,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
                 response.Success = false;
                 response.statusCode = HttpStatusCode.BadRequest;
                 response.Errors.Add("Email is already confirmed");
-                return (response,null);
+                return (response, null);
             }
 
             // تحقق من المدة المسموح بها قبل إعادة الإرسال
@@ -290,22 +296,22 @@ namespace MagicVilla_VillaApi.Services.Implementations
                 response.statusCode = HttpStatusCode.NotAcceptable;
                 response.Errors.Add("Can Not resent until time out");
                 response.result = resendCheck.remainingTime?.ToString(@"hh\:mm\:ss");
-                return (response,null);
-  
+                return (response, null);
+
             }
-                response.Success = true;
-                response.statusCode = HttpStatusCode.OK;
-                RecordResend(user.Id, "Email");
-                return (response,user);
+            response.Success = true;
+            response.statusCode = HttpStatusCode.OK;
+            RecordResend(user.Id, "Email");
+            return (response, user);
 
 
         }
 
-        public async Task<(ApiResponse response, User user)> ForgotPassword( ResetPasswordRequestViewModel model)
+        public async Task<(ApiResponse response, User user)> ForgotPassword(ResetPasswordRequestViewModel model)
         {
             var response = new ApiResponse();
 
-           model.Email = model.Email.Trim().ToLower();
+            model.Email = model.Email.Trim().ToLower();
 
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
@@ -341,7 +347,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
             response.Success = true;
             response.statusCode = HttpStatusCode.OK;
             RecordResend(user.Id, "password");
-            return (response,user);
+            return (response, user);
 
 
         }
@@ -359,7 +365,7 @@ namespace MagicVilla_VillaApi.Services.Implementations
                 response.Errors.Add($"IUser with ID {model.UserId} not found");
                 return response;
             }
-            var result = await _userManager.ResetPasswordAsync(user,model.Token , model.Password);
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
             if (result.Succeeded)
             {
                 _cache.Remove($"resend_{user.Id}password");
@@ -405,16 +411,16 @@ namespace MagicVilla_VillaApi.Services.Implementations
         }
 
 
-        public async Task< (string Token,DateTime Expiration) >GetJWT(User user)
+        public async Task<string> GetJWT(string userId,string TokenId)
         {
-
+            var user=await _Context.User.FirstOrDefaultAsync(W => W.Id == userId);
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
-
+            var Id = new Claim(JwtRegisteredClaimNames.Jti, TokenId);
             var claims = new List<Claim>()
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    Id,
                 };
             var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
@@ -432,13 +438,101 @@ namespace MagicVilla_VillaApi.Services.Implementations
 
             );
             var JwtSecurity = new JwtSecurityTokenHandler().WriteToken(token);
-            return (JwtSecurity, token.ValidTo);
+            return (JwtSecurity);
 
         }
-
-        public async Task<DtoUser> GetNewTokenFromRefreshToken(DtoUser dtoUser)
+        public async Task<ApiResponse> GetNewTokenFromRefreshToken(DtoUser dtoUser)
         {
-            throw new NotImplementedException();
+            var response = new ApiResponse();
+            var DbRefreshToken = _Context.RefreshTokens.FirstOrDefault(A => A.Refresh_Token == dtoUser.RefreshToken);
+            if (DbRefreshToken == null)
+            {
+                response.Errors.Add("Invalid Token");
+                response.Success = false;
+                response.statusCode = HttpStatusCode.BadRequest;
+                return response;
+
+            }
+                var DataAccessToken = GetAccessTekenData(dtoUser.Token);
+            if (!DataAccessToken.Success || DbRefreshToken.UserId != DataAccessToken.UserId
+                || DbRefreshToken.JwtTokenId != DataAccessToken.TokenId )
+            {
+                DbRefreshToken.IsValid = false;
+               await _Context.SaveChangesAsync();
+                response.Errors.Add( "Invalid Token");
+                response.Success = false;
+                response.statusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+            if (!DbRefreshToken.IsValid)
+            {
+                var Chain = await _Context.RefreshTokens.
+                    Where(W => W.JwtTokenId == DbRefreshToken.JwtTokenId && W.UserId == DbRefreshToken.UserId).
+                    ExecuteUpdateAsync(E => E.SetProperty(s => s.IsValid, false));
+
+                response.Errors.Add("Invalid Token");
+                response.Success = false;
+                response.statusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+            if( DbRefreshToken.Expiration < DateTime.UtcNow)
+            {
+                DbRefreshToken.IsValid = false;
+                await _Context.SaveChangesAsync();
+                response.Errors.Add("Invalid Token");
+                response.Success = false;
+                response.statusCode = HttpStatusCode.BadRequest;
+                return response;
+
+            }
+
+           var newRefreshToken=  await CreateRefreshToken(DataAccessToken.UserId,DataAccessToken.TokenId);
+            DbRefreshToken.IsValid = false;
+            await _Context.SaveChangesAsync();
+            var newToken =await GetJWT(DataAccessToken.UserId, DataAccessToken.TokenId);
+            response.Success = true;
+            response.statusCode = HttpStatusCode.OK;
+            response.result = new DtoUser()
+            {
+                RefreshToken = newRefreshToken,
+                Token = newToken
+            };
+            return response;
+
         }
+
+        public async Task<string> CreateRefreshToken(string userId, string TokenId)
+        {
+            var refreshToken = new RefreshToken()
+            {
+                IsValid = true,
+                JwtTokenId = TokenId,
+                UserId = userId,
+                Expiration = DateTime.UtcNow.AddDays(10)
+                ,Refresh_Token=Guid.NewGuid().ToString()+ "_" + Guid.NewGuid().ToString()
+            };
+           await _sharedRepo.AddAsync(refreshToken);
+            return refreshToken.Refresh_Token;
+        }
+        public (bool Success,string UserId,string TokenId) GetAccessTekenData(string  jwt)
+        {
+            try
+            {
+
+                var readToken = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
+                var userId = readToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+                var tokenId = readToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
+                return (true, userId, tokenId);
+            }
+            
+            catch (Exception ex)
+            {
+                return (false, null, null);
+
+            }
+
+        }
+
+
     }
 }

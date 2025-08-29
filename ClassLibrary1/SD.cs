@@ -9,7 +9,8 @@
             Put,
             Delete
         }
-        public static string AccessToken = "JWTSession1144";
+        public static string AccessToken = "JWTCookies1144";
+        public static string RefreshToken = "ResfreshTokenCookies1144";
         public static string CurrentVersion = "v2";
     }
 

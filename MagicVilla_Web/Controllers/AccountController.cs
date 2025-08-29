@@ -1,17 +1,11 @@
 ﻿
-
-using ClassLibrary1;
 using MagicVilla_Web.Dto.ApiResponses;
 using MagicVilla_Web.Dto.Identity;
 using MagicVilla_Web.Services;
 using MagicVilla_Web.ViewModels.Identity;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Serilog;
 using System.Net;
-using System.Security.Claims;
 
 namespace MagicVilla_VillaApi.Controllers
 {
@@ -30,27 +24,15 @@ namespace MagicVilla_VillaApi.Controllers
         {
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-         var result= await _accountService.Login<ApiResponse>(model);
+         var result= await _accountService.LoginRequest<ApiResponse>(model);
             if (result.Success)
             {
-                var userData = JsonConvert.DeserializeObject<DtoUser>(Convert.ToString(result.result));
-                
-                
-                var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                identity.AddClaim(new Claim(ClaimTypes.Name, userData.UserName));
-                foreach(var item in userData.Roles)
-                {
-                identity.AddClaim(new Claim(CookieAuthenticationDefaults.AuthenticationScheme,ClaimTypes.Role, item));
-                }
-                var principal = new ClaimsPrincipal(identity);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal);
-
-                HttpContext.Session.SetString(SD.AccessToken,userData.Teken);
+                await _accountService.Login(result.result);
                return RedirectToAction("Index", "Home");
             }
             if(result.statusCode== HttpStatusCode.Redirect)
@@ -88,8 +70,8 @@ namespace MagicVilla_VillaApi.Controllers
     
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync();
-            HttpContext.Session.SetString(SD.AccessToken, "");
+
+            _accountService.Logout();
             return RedirectToAction("Index","Home");
         }
 
@@ -99,6 +81,8 @@ namespace MagicVilla_VillaApi.Controllers
         {
             return View();
         }
+
+
 
         [AcceptVerbs("Get", "Post")]
         public async Task<IActionResult> IsUserNameAvailable(string username)
@@ -214,6 +198,7 @@ namespace MagicVilla_VillaApi.Controllers
             ModelState.AddModelError("",response.Errors.FirstOrDefault());
             return View(model);
         }
+
 
     }
 }

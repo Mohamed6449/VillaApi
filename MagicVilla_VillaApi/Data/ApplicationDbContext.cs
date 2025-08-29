@@ -21,6 +21,7 @@ namespace MagicVilla_VillaApi.Data
         public DbSet<VillaNumber> VillaNumbers { get; set; }
         public DbSet<Villa> Villas { get; set; }
         public DbSet<User> User { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     }
 }

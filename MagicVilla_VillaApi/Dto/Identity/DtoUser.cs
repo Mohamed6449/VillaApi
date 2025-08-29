@@ -5,18 +5,9 @@ namespace MagicVilla_VillaApi.Dto.Identity
 {
     public class DtoUser
     {
-        public string Id {  get; set; }
-
-
-        public string UserName { get; set; }
-
-        public string[] Roles { get; set; }
-
-        public string Teken {  get; set; }
+        public string Token {  get; set; }
 
         public string RefreshToken { get; set; }
-        public DateTime expirationDateToken { get; set; }
-
 
     }
 }
